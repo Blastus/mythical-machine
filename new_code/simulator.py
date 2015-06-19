@@ -3,7 +3,7 @@
 
 def main():
     mm = MythicalMachine()
-    mm.run('..\\mml_programs\\prog2.mml')
+    mm.run('..\\mml_programs\\program4.mml')
 
 
 class MythicalMachine:
