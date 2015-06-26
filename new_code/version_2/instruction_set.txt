@@ -1,0 +1,45 @@
+------------------------ Instruction Set for MM ------------------------
+000000000000000000000   halt
+1ABBBBBCCABBBBBABBBBB   A[BBBBB] = CC(A[BBBBB], A[BBBBB])
+2ABBBBBCCABBBBBABBBBB   goto A[BBBBB] if CC(A[BBBBB], 0) else A[BBBBB]
+
+--------------------------- Code "A" Meaning ---------------------------
+0                       i
+1                       MEM[m]
+2                       REG[r]
+3                       MEM[MEM[m]]
+4                       MEM[REG[r]]
+5                       REG[MEM[m]]
+6                       REG[REG[r]]
+7                       MEM[MEM[MEM[m]]]
+8                       MEM[MEM[REG[r]]]
+9                       MEM[REG[MEM[r]]]
+A                       MEM[REG[REG[r]]]
+B                       REG[MEM[MEM[r]]]
+C                       REG[MEM[REG[r]]]
+D                       REG[REG[MEM[r]]]
+E                       REG[REG[REG[r]]]
+F                       PORT[p]
+
+--------------------------- Code "B" Meaning ---------------------------
+The pattern BBBBB represents a number composed of 20 bits.
+
+--------------------------- Code "C" Meaning ---------------------------
+00                      <
+01                      <=
+02                      ==
+03                      !=
+04                      >
+05                      >=
+06                      +
+07                      -
+08                      *
+09                      /
+0A                      //
+0B                      %
+0C                      **
+0D                      <<
+0E                      >>
+0F                      &
+10                      ^
+11                      |
