@@ -72,13 +72,15 @@ class AssemblerProgram:
         program = self.patch_program(program)
         self.pass_one(program)
         self.pass_two(program)
+        self.__out_file.flush()
 
     @staticmethod
     def patch_program(program):
         if len(program) == 1:
             path = pathlib.Path(program[0].strip())
             if path.is_file():
-                return path.open().readlines()
+                with path.open() as file:
+                    return file.readlines()
         return program
 
 if __name__ == '__main__':

@@ -1,0 +1,4 @@
+term = 5
+ans  = 1
+while term { ans=ans*term  term=term-1 }
+ans
