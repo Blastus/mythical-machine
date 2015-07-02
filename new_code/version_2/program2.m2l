@@ -1,0 +1,109 @@
+# Register FFFFF, which is (1 << 20) - 1, will contain an offset to registers
+# F7FFF through FFFFE, which are (1 << 20) - 1 - (1 << 15) through
+# (1 << 20) - 2. The range of registers will contain a stack of function call
+# return locations.
+
+# Go to the beginning of the program.
+
+400 20-----020000000-----   goto ----- if 0 == 0 else -----
+
+# Create a subroutine that allows one function to call another. The routine
+# will require two pieces of information: (1) where the function being called
+# is located and (2) what return address should be used on return. Register
+# F7FFD, (1 << 20) - 3 - (1 << 15), will be used for the call address; and
+# register F7FFE, (1 << 20) - 2 - (1 << 15), will be used for the return
+# address.
+
+# Register F7FFC, (1 << 20) - 4 - (1 << 15) will be used by the routine.
+
+# INSTRUCTION: call(target_address, return_address)
+
+401 12F7FFC002FFFFF008000   REG[F7FFC] = REG[FFFFF] < 8000
+402 2000403032F7FFC000407   goto 00403 if REG[F7FFC] != 0 else 00407
+403 12F7FFC060F7FFF2FFFFF   REG[F7FFC] = F7FFF + REG[FFFFF]
+404 16F7FFC062F7FFE000000   REG[REG[F7FFC]] = REG[F7FFE] + 0
+405 12FFFFF062FFFFF000001   REG[FFFFF] = REG[FFFFF] + 1
+406 22F7FFD020000002F7FFD   goto REG[F7FFD] if 0 == 0 else REG[F7FFD]
+407 1F000020600000A000000   PORT[00002] = 0000A + 0
+408 1F0000206000063000000   PORT[00002] = 00063 + 0
+409 1F0000206000061000000   PORT[00002] = 00061 + 0
+40A 1F000020600006C000000   PORT[00002] = 0006C + 0
+40B 1F000020600006C000000   PORT[00002] = 0006C + 0
+40C 1F0000206000020000000   PORT[00002] = 00020 + 0
+40D 1F0000206000073000000   PORT[00002] = 00073 + 0
+40E 1F0000206000074000000   PORT[00002] = 00074 + 0
+40F 1F0000206000061000000   PORT[00002] = 00061 + 0
+410 1F0000206000063000000   PORT[00002] = 00063 + 0
+411 1F000020600006B000000   PORT[00002] = 0006B + 0
+412 1F0000206000020000000   PORT[00002] = 00020 + 0
+413 1F0000206000073000000   PORT[00002] = 00073 + 0
+414 1F0000206000070000000   PORT[00002] = 00070 + 0
+415 1F0000206000061000000   PORT[00002] = 00061 + 0
+416 1F0000206000063000000   PORT[00002] = 00063 + 0
+417 1F0000206000065000000   PORT[00002] = 00065 + 0
+418 1F0000206000020000000   PORT[00002] = 00020 + 0
+419 1F0000206000066000000   PORT[00002] = 00066 + 0
+41A 1F0000206000075000000   PORT[00002] = 00075 + 0
+41B 1F000020600006C000000   PORT[00002] = 0006C + 0
+41C 1F000020600006C000000   PORT[00002] = 0006C + 0
+41D 1F000020600000A000000   PORT[00002] = 0000A + 0
+41E 000000000000000000000   halt
+
+# Now a subroutine needs to be created for returning from a function call. No
+# parameters are needed to activate this subroutine.
+
+# Register F7FFC, (1 << 20) - 4 - (1 << 15) will be used by the routine.
+
+# INSTRUCTION: return
+
+41F 2000420042FFFFF000423   goto 00420 if REG[FFFFF] > 0 else 00423
+420 12FFFFF062FFFFF000001   REG[FFFFF] = REG[FFFFF] + 1
+421 12F7FFC060F7FFF2FFFFF   REG[F7FFC] = F7FFF + REG[FFFFF]
+422 22F7FFC020000002F7FFC   goto REG[F7FFC] if 0 == 0 else REG[F7FFC]
+423 1F000020600000A000000   PORT[00002] = 0000A + 0
+424 1F0000206000063000000   PORT[00002] = 00063 + 0
+425 1F0000206000061000000   PORT[00002] = 00061 + 0
+426 1F000020600006C000000   PORT[00002] = 0006C + 0
+427 1F000020600006C000000   PORT[00002] = 0006C + 0
+428 1F0000206000020000000   PORT[00002] = 00020 + 0
+429 1F0000206000073000000   PORT[00002] = 00073 + 0
+42A 1F0000206000074000000   PORT[00002] = 00074 + 0
+42B 1F0000206000061000000   PORT[00002] = 00061 + 0
+42C 1F0000206000063000000   PORT[00002] = 00063 + 0
+42D 1F000020600006B000000   PORT[00002] = 0006B + 0
+42E 1F0000206000020000000   PORT[00002] = 00020 + 0
+42F 1F0000206000073000000   PORT[00002] = 00073 + 0
+430 1F0000206000070000000   PORT[00002] = 00070 + 0
+431 1F0000206000061000000   PORT[00002] = 00061 + 0
+432 1F0000206000063000000   PORT[00002] = 00063 + 0
+433 1F0000206000065000000   PORT[00002] = 00065 + 0
+434 1F0000206000020000000   PORT[00002] = 00020 + 0
+435 1F0000206000065000000   PORT[00002] = 00065 + 0
+436 1F000020600006D000000   PORT[00002] = 0006D + 0
+437 1F0000206000070000000   PORT[00002] = 00070 + 0
+438 1F000020600006F000000   PORT[00002] = 0006F + 0
+439 1F0000206000074000000   PORT[00002] = 00074 + 0
+43A 1F0000206000079000000   PORT[00002] = 00079 + 0
+43B 1F000020600000A000000   PORT[00002] = 0000A + 0
+43C 000000000000000000000   halt
+
+# Let us create a stack now. Since Whitespace was a language with a stack and
+# was used a lot in code, we might as well have a stack as well. There are
+# several instructions that we need:
+#   PUSH            put a value on top of stack if there is room
+#   DUPLICATE       copy the top item on stack to above itself
+#   COPY(offset)    takes one argument and adds copy to top of stack
+#   SWAP            swaps the top two values on the stack
+#   DISCARD         pop and forget top item on the stack
+#   SLIDE(count)    delete count items on stack under the top
+# See http://compsoc.dur.ac.uk/whitespace/tutorial.php for a list of commands.
+
+# Alternatively, we could and/or implement the 8086 stack instructions found
+# http://www.electronics.dit.ie/staff/tscarff/8086_instruction_set/
+# 8086_instruction_set.html
+# and also http://www.gabrielececchetti.it/Teaching/CalcolatoriElettronici/
+# Docs/i8086_instruction_set.pdf
+#   POP             pop value from stack and return if it exists
+#   POPA            restore registers 0 - 31 from stack
+#   PUSH(value)     push value onto the stack if there is room
+#   PUSHA           push registers 0 - 31 to stack
