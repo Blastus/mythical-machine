@@ -1,20 +1,44 @@
 #! /usr/bin/env python3
 __author__ = 'Stephen "Zero" Chappell <Noctis.Skytower@gmail.com>'
 
+import math
+import struct
+import sys
 
-class MagicMachine:
+FLOAT = struct.Struct('>d')
+INTEGER = struct.Struct('>Q')
+
+
+def main():
+    ports = StandardInput(), StandardOutput(), StandardError()
+    mm = MagicalMachine(ports)
+    mm.run('program1.m2l')
+
+
+def float_to_int(obj):
+    return INTEGER.unpack(FLOAT.pack(obj))[0]
+
+
+def int_to_float(obj):
+    return FLOAT.unpack(INTEGER.pack(obj))[0]
+
+###############################################################################
+
+
+class MagicalMachine:
 
     def __init__(self, ports):
         self.__ports = ports
-        self.__mem = [0] * (1 << 20)
-        self.__reg = [0] * (1 << 20)
-        self.__code = 0
+        self.__mem = MemoryCells(20, 84)
+        self.__reg = MemoryCells(20, 84)
         self.__next = 0
 
     def cycle(self):
-        self.__code = self.__mem[self.__next]
+        code = self.__mem[self.__next]
+        if isinstance(code, float):
+            code = float_to_int(code)
         self.__next += 1
-        code, b3 = divmod(self.__code, 1 << 20)
+        code, b3 = divmod(abs(code), 1 << 20)
         code, a3 = divmod(code, 1 << 4)
         code, b2 = divmod(code, 1 << 20)
         code, a2 = divmod(code, 1 << 4)
@@ -32,7 +56,7 @@ class MagicMachine:
             return True
         if op == 2:
             self.__next = self.__get(a1, b1) if self.__exe(cc, self.__get(
-                a2, b2), 0) else self.__next = self.__get(a3, b3)
+                a2, b2), 0) else self.__get(a3, b3)
             return True
         raise ValueError('instruction could not be understood')
 
@@ -68,7 +92,7 @@ class MagicMachine:
         elif a == 14:
             return self.__reg[self.__reg[self.__reg[b]]]
         elif a == 15:
-            return self.__ports[b].get_in()
+            return self.__ports[b].in_()
         else:
             raise ValueError('could not understand operand type')
 
@@ -145,7 +169,7 @@ class MagicMachine:
         elif a == 14:
             self.__reg[self.__reg[self.__reg[b]]] = c
         elif a == 15:
-            self.__ports[b].set_out(c)
+            self.__ports[b].out(c)
         else:
             raise ValueError('could not understand operand type')
 
@@ -157,6 +181,129 @@ class MagicMachine:
                     try:
                         address = int(fields[0], 16)
                         instruction = int(fields[1], 16)
-                        self.__mem[address] = instruction
                     except (IndexError, ValueError):
                         pass
+                    else:
+                        self.__mem[address] = instruction
+
+    def run(self, name):
+        self.load(name)
+        self.__next = 1 << 10
+        while self.cycle():
+            pass
+
+###############################################################################
+
+
+class MemoryCells:
+
+    def __init__(self, address_bus_width, data_bus_width):
+        total_cells = 1 << address_bus_width
+        self.__cells = [0] * total_cells
+        self.__address_bus_mask = total_cells - 1
+        self.__data_bus_mask = (1 << data_bus_width) - 1
+
+    def __getitem__(self, key):
+        return self.__cells[self.__scrub_key(key)]
+
+    def __scrub_key(self, key):
+        if isinstance(key, float):
+            key = float_to_int(key)
+        return abs(key) & self.__address_bus_mask
+
+    def __setitem__(self, key, value):
+        self.__cells[self.__scrub_key(key)] = self.__scrub_value(value)
+
+    def __scrub_value(self, value):
+        if isinstance(value, float):
+            # float sign bits are included on the data bus size
+            return int_to_float(float_to_int(value) & self.__data_bus_mask)
+        # integer sign bits are exclude on the data bus size
+        if value < 0:
+            return -(-value & self.__data_bus_mask)
+        return value & self.__data_bus_mask
+
+###############################################################################
+
+
+class Port:
+
+    def in_(self):
+        raise NotImplementedError()
+
+    def out(self, value):
+        raise NotImplementedError()
+
+###############################################################################
+
+
+class BinaryPort(Port):
+
+    def in_(self):
+        return int.from_bytes(self._exe_in(), 'big')
+
+    def _exe_in(self):
+        raise NotImplementedError()
+
+    def out(self, value):
+        value = float_to_int(value) if isinstance(value, float) else abs(value)
+        value = value.to_bytes(math.ceil(value.bit_length() / 8), 'big')
+        self._exe_out(value)
+
+    def _exe_out(self, value):
+        raise NotImplementedError()
+
+###############################################################################
+
+
+class StringPort(Port):
+
+    def __init__(self, encoding='utf-8', errors='strict'):
+        self.__encoding, self.__errors = encoding, errors
+
+    def in_(self):
+        return int.from_bytes(self._exe_in().encode(
+            self.__encoding, self.__errors), 'big')
+
+    def _exe_in(self):
+        raise NotImplementedError()
+
+    def out(self, value):
+        value = float_to_int(value) if isinstance(value, float) else abs(value)
+        value = value.to_bytes(math.ceil(value.bit_length() / 8), 'big')
+        self._exe_out(value.decode(self.__encoding, self.__errors))
+
+    def _exe_out(self, value):
+        raise NotImplementedError()
+
+###############################################################################
+
+
+class StandardInput(StringPort):
+
+    def _exe_in(self):
+        return sys.stdin.read(1)
+
+    def _exe_out(self, value):
+        pass
+
+
+class StandardOutput(StringPort):
+
+    def _exe_in(self):
+        pass
+
+    def _exe_out(self, value):
+        sys.stdout.write(value)
+
+
+class StandardError(StringPort):
+
+    def _exe_in(self):
+        pass
+
+    def _exe_out(self, value):
+        sys.stdout.write(value)
+
+if __name__ == '__main__':
+    main()
