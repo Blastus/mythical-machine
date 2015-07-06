@@ -1,0 +1,31 @@
+FFFFF
+    offset of call stack pointer
+
+F7FFF - FFFFE
+    stack of return addresses for returning from function call
+
+F7FFE
+    stores the return address when calling subroutines 401 (call), 43C (push),
+    45D (pop)
+
+F7FFD
+    stores the function address when calling subroutine 401 (call)
+
+F7FFC
+    used for miscellaneous calculations in subroutines 401 (call), 41F
+    (return), 43C (push), 45D (pop), 47E (pusha)
+
+F7FFB
+    offset of general stack pointer
+
+EFFFB - F7FFA
+    stack of values associated with the general-purpose stack
+
+EFFFA
+    value to be pushed on stack or value of last popped value
+
+EFFF9
+    stores return address when calling subroutine 47E (pusha)
+
+EFFF8
+    stores counter used in subroutine 47E (pusha)
