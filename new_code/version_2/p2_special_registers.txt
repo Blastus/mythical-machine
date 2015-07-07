@@ -25,7 +25,7 @@ EFFFA
     value to be pushed on stack or value of last popped value
 
 EFFF9
-    stores return address when calling subroutine 47E (pusha)
+    stores return address when calling subroutines 47E (pusha), 485 (popa)
 
 EFFF8
-    stores counter used in subroutine 47E (pusha)
+    stores counter used in subroutines 47E (pusha), 485 (popa)
