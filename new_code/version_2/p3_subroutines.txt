@@ -1,0 +1,42 @@
+call (401)
+    > target_address = REG[F7FFD]
+    > return_address = REG[F7FFE]
+    < None
+
+return (41F)
+    > None
+    < None
+
+push (43C)
+    > value = REG[EFFFA]
+    > return_address = REG[F7FFE]
+    < None
+
+pop (45D)
+    > return_address = REG[F7FFE]
+    < value = REG[EFFFA]
+
+pusha (47E)
+    > return_address = REG[EFFF9]
+    < None
+
+popa (485)
+    > return_address = REG[EFFF9]
+    < None
+
+copy (4A5)
+    > offset = REG[F7FFD]
+    > return_address = REG[F7FFE]
+    < None
+
+dup_top_1 (4CE)
+    > return_address = REG[F7FFE]
+    < None
+
+FUNCTIONS
+===============================================================================
+
+print (48B)
+    > string_pointer
+    > port_number
+    < success

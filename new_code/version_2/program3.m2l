@@ -1,0 +1,316 @@
+# Register FFFFF, which is (1 << 20) - 1, will contain an offset to registers
+# F7FFF through FFFFE, which are (1 << 20) - 1 - (1 << 15) through
+# (1 << 20) - 2. The range of registers will contain a stack of function call
+# return locations.
+
+# Go to the beginning of the program.
+
+400 20-----020000000-----               goto ----- if 0 == 0 else -----
+
+# Create a subroutine that allows one function to call another. The routine
+# will require two pieces of information: (1) where the function being called
+# is located and (2) what return address should be used on return. Register
+# F7FFD, (1 << 20) - 3 - (1 << 15), will be used for the call address; and
+# register F7FFE, (1 << 20) - 2 - (1 << 15), will be used for the return
+# address.
+
+# Register F7FFC, (1 << 20) - 4 - (1 << 15) will be used by the routine.
+
+# INSTRUCTION: call(target_address=REG[F7FFD], return_address=REG[F7FFE])
+
+401 12F7FFC002FFFFF008000   call        REG[F7FFC] = REG[FFFFF] < 8000
+402 2000403032F7FFC000407               goto _c1 if REG[F7FFC] != 0 else _c2
+403 12F7FFC060F7FFF2FFFFF   _c1         REG[F7FFC] = F7FFF + REG[FFFFF]
+404 16F7FFC062F7FFE000000               REG[REG[F7FFC]] = REG[F7FFE] + 0
+405 12FFFFF062FFFFF000001               REG[FFFFF] = REG[FFFFF] + 1
+406 22F7FFD020000002F7FFD               goto REG[F7FFD] if 0 == 0 else REG[F7FFD]
+# print('\ncall stack space full\n', 2)
+407 17000020600000A000000   _c2         PORT[00002] = 0000A + 0
+408 170000206000063000000               PORT[00002] = 00063 + 0
+409 170000206000061000000               PORT[00002] = 00061 + 0
+40A 17000020600006C000000               PORT[00002] = 0006C + 0
+40B 17000020600006C000000               PORT[00002] = 0006C + 0
+40C 170000206000020000000               PORT[00002] = 00020 + 0
+40D 170000206000073000000               PORT[00002] = 00073 + 0
+40E 170000206000074000000               PORT[00002] = 00074 + 0
+40F 170000206000061000000               PORT[00002] = 00061 + 0
+410 170000206000063000000               PORT[00002] = 00063 + 0
+411 17000020600006B000000               PORT[00002] = 0006B + 0
+412 170000206000020000000               PORT[00002] = 00020 + 0
+413 170000206000073000000               PORT[00002] = 00073 + 0
+414 170000206000070000000               PORT[00002] = 00070 + 0
+415 170000206000061000000               PORT[00002] = 00061 + 0
+416 170000206000063000000               PORT[00002] = 00063 + 0
+417 170000206000065000000               PORT[00002] = 00065 + 0
+418 170000206000020000000               PORT[00002] = 00020 + 0
+419 170000206000066000000               PORT[00002] = 00066 + 0
+41A 170000206000075000000               PORT[00002] = 00075 + 0
+41B 17000020600006C000000               PORT[00002] = 0006C + 0
+41C 17000020600006C000000               PORT[00002] = 0006C + 0
+41D 17000020600000A000000               PORT[00002] = 0000A + 0
+41E 000000000000000000000               halt
+
+# Now a subroutine needs to be created for returning from a function call. No
+# parameters are needed to activate this subroutine.
+
+# Register F7FFC, (1 << 20) - 4 - (1 << 15) will be used by the routine.
+
+# INSTRUCTION: return
+
+41F 2000420042FFFFF000423   return      goto _r1 if REG[FFFFF] > 0 else _r2
+420 12FFFFF072FFFFF000001   _r1         REG[FFFFF] = REG[FFFFF] - 1
+421 12F7FFC060F7FFF2FFFFF               REG[F7FFC] = F7FFF + REG[FFFFF]
+422 26F7FFC020000006F7FFC               goto REG[REG[F7FFC]] if 0 == 0 else REG[REG[F7FFC]]
+# print('\ncall stack space empty\n', 2)
+423 17000020600000A000000   _r2         PORT[00002] = 0000A + 0
+424 170000206000063000000               PORT[00002] = 00063 + 0
+425 170000206000061000000               PORT[00002] = 00061 + 0
+426 17000020600006C000000               PORT[00002] = 0006C + 0
+427 17000020600006C000000               PORT[00002] = 0006C + 0
+428 170000206000020000000               PORT[00002] = 00020 + 0
+429 170000206000073000000               PORT[00002] = 00073 + 0
+42A 170000206000074000000               PORT[00002] = 00074 + 0
+42B 170000206000061000000               PORT[00002] = 00061 + 0
+42C 170000206000063000000               PORT[00002] = 00063 + 0
+42D 17000020600006B000000               PORT[00002] = 0006B + 0
+42E 170000206000020000000               PORT[00002] = 00020 + 0
+42F 170000206000073000000               PORT[00002] = 00073 + 0
+430 170000206000070000000               PORT[00002] = 00070 + 0
+431 170000206000061000000               PORT[00002] = 00061 + 0
+432 170000206000063000000               PORT[00002] = 00063 + 0
+433 170000206000065000000               PORT[00002] = 00065 + 0
+434 170000206000020000000               PORT[00002] = 00020 + 0
+435 170000206000065000000               PORT[00002] = 00065 + 0
+436 17000020600006D000000               PORT[00002] = 0006D + 0
+437 170000206000070000000               PORT[00002] = 00070 + 0
+438 170000206000074000000               PORT[00002] = 00074 + 0
+439 170000206000079000000               PORT[00002] = 00079 + 0
+43A 17000020600000A000000               PORT[00002] = 0000A + 0
+43B 000000000000000000000               halt
+
+# Let us create a stack now. Since Whitespace was a language with a stack and
+# was used a lot in code, we might as well have a stack as well. There are
+# several instructions that we need:
+#   PUSH            put a value on top of stack if there is room
+#   DUPLICATE       copy the top item on stack to above itself
+#   COPY(offset)    takes one argument and adds copy to top of stack
+#   SWAP            swaps the top two values on the stack
+#   DISCARD         pop and forget top item on the stack
+#   SLIDE(count)    delete count items on stack under the top
+# See http://compsoc.dur.ac.uk/whitespace/tutorial.php for a list of commands.
+
+# Alternatively, we could and/or implement the 8086 stack instructions found at
+# http://www.electronics.dit.ie/staff/tscarff/8086_instruction_set/
+# 8086_instruction_set.html
+# and also http://www.gabrielececchetti.it/Teaching/CalcolatoriElettronici/
+# Docs/i8086_instruction_set.pdf
+#   POP             pop value from stack and return if it exists
+#   POPA            restore registers 0 - 31 from stack
+#   PUSH(value)     push value onto the stack if there is room
+#   PUSHA           push registers 0 - 31 to stack
+
+# Register F7FFB will be used like register FFFFF. It will be an offset to
+# registers EFFFB - F7FFA which will be used as storage space for the general-
+# purpose stack. Register EFFFA will be used as the value pushed to or popped
+# from the stack. Register F7FFE will contain the return address for the
+# subroutine.
+
+# INSTRUCTION: push(value=REG[EFFFA], return_address=REG[F7FFE])
+
+43C 12F7FFC002F7FFB008000   push        REG[F7FFC] = REG[F7FFB] < 8000
+43D 200043E032F7FFC000442               goto _pu1 if REG[F7FFC] != 0 else _pu2
+43E 12F7FFC060EFFFB2F7FFB   _pu1        REG[F7FFC] = EFFFB + REG[F7FFB]
+43F 16F7FFC062EFFFA000000               REG[REG[F7FFC]] = REG[EFFFA] + 0
+440 12F7FFB062F7FFB000001               REG[F7FFB] = REG[F7FFB] + 1
+441 22F7FFE020000002F7FFE               goto REG[F7FFE] if 0 == 0 else REG[F7FFE]
+# print('\ngeneral stack space full\n', 2)
+442 17000020600000A000000   _pu2        PORT[00002] = 0000A + 0
+443 170000206000067000000               PORT[00002] = 00067 + 0
+444 170000206000065000000               PORT[00002] = 00065 + 0
+445 17000020600006E000000               PORT[00002] = 0006E + 0
+446 170000206000065000000               PORT[00002] = 00065 + 0
+447 170000206000072000000               PORT[00002] = 00072 + 0
+448 170000206000061000000               PORT[00002] = 00061 + 0
+449 17000020600006C000000               PORT[00002] = 0006C + 0
+44A 170000206000020000000               PORT[00002] = 00020 + 0
+44B 170000206000073000000               PORT[00002] = 00073 + 0
+44C 170000206000074000000               PORT[00002] = 00074 + 0
+44D 170000206000061000000               PORT[00002] = 00061 + 0
+44E 170000206000063000000               PORT[00002] = 00063 + 0
+44F 17000020600006B000000               PORT[00002] = 0006B + 0
+450 170000206000020000000               PORT[00002] = 00020 + 0
+451 170000206000073000000               PORT[00002] = 00073 + 0
+452 170000206000070000000               PORT[00002] = 00070 + 0
+453 170000206000061000000               PORT[00002] = 00061 + 0
+454 170000206000063000000               PORT[00002] = 00063 + 0
+455 170000206000065000000               PORT[00002] = 00065 + 0
+456 170000206000020000000               PORT[00002] = 00020 + 0
+457 170000206000066000000               PORT[00002] = 00066 + 0
+458 170000206000075000000               PORT[00002] = 00075 + 0
+459 17000020600006C000000               PORT[00002] = 0006C + 0
+45A 17000020600006C000000               PORT[00002] = 0006C + 0
+45B 17000020600000A000000               PORT[00002] = 0000A + 0
+45C 000000000000000000000               halt
+
+# INSTRUCTION: pop(return_address=REG[F7FFE])
+
+45D 200045E042F7FFB000462   pop         goto _po1 if REG[F7FFB] > 0 else _po2
+45E 12F7FFB072F7FFB000001   _po1        REG[F7FFB] = REG[F7FFB] - 1
+45F 12F7FFC060EFFFB2F7FFB               REG[F7FFC] = EFFFB + REG[F7FFB]
+460 12EFFFA066F7FFC000000               REG[EFFFA] = REG[REG[F7FFC]] + 0
+461 22F7FFE020000002F7FFE               goto REG[F7FFE] if 0 == 0 else REG[F7FFE]
+# print('\ngeneral stack space empty\n', 2)
+462 17000020600000A000000   _po2        PORT[00002] = 0000A + 0
+463 170000206000067000000               PORT[00002] = 00067 + 0
+464 170000206000065000000               PORT[00002] = 00065 + 0
+465 17000020600006E000000               PORT[00002] = 0006E + 0
+466 170000206000065000000               PORT[00002] = 00065 + 0
+467 170000206000072000000               PORT[00002] = 00072 + 0
+468 170000206000061000000               PORT[00002] = 00061 + 0
+469 17000020600006C000000               PORT[00002] = 0006C + 0
+46A 170000206000020000000               PORT[00002] = 00020 + 0
+46B 170000206000073000000               PORT[00002] = 00073 + 0
+46C 170000206000074000000               PORT[00002] = 00074 + 0
+46D 170000206000061000000               PORT[00002] = 00061 + 0
+46E 170000206000063000000               PORT[00002] = 00063 + 0
+46F 17000020600006B000000               PORT[00002] = 0006B + 0
+470 170000206000020000000               PORT[00002] = 00020 + 0
+471 170000206000073000000               PORT[00002] = 00073 + 0
+472 170000206000070000000               PORT[00002] = 00070 + 0
+473 170000206000061000000               PORT[00002] = 00061 + 0
+474 170000206000063000000               PORT[00002] = 00063 + 0
+475 170000206000065000000               PORT[00002] = 00065 + 0
+476 170000206000020000000               PORT[00002] = 00020 + 0
+477 170000206000065000000               PORT[00002] = 00065 + 0
+478 17000020600006D000000               PORT[00002] = 0006D + 0
+479 170000206000070000000               PORT[00002] = 00070 + 0
+47A 170000206000074000000               PORT[00002] = 00074 + 0
+47B 170000206000079000000               PORT[00002] = 00079 + 0
+47C 17000020600000A000000               PORT[00002] = 0000A + 0
+47D 000000000000000000000               halt
+
+# INSTRUCTION: pusha(return_address=REG[EFFF9])
+
+47E 12F7FFE06000482000000   pusha       REG[F7FFE] = _pua2 + 0
+47F 12EFFF806000000000000               REG[EFFF8] = 0 + 0
+480 12EFFFA066EFFF8000000   _pua1       REG[EFFFA] = REG[REG[EFFF8]] + 0
+481 200043C0200000000043C               goto push if 0 == 0 else push
+482 12EFFF8062EFFF8000001   _pua2       REG[EFFF8] = REG[EFFF8] + 1
+483 12F7FFC002EFFF8000020               REG[F7FFC] = REG[EFFF8] < 20
+484 2000480032F7FFC2EFFF9               goto _pua1 if REG[F7FFC] != 0 else REG[EFFF9]
+
+# INSTRUCTION: popa(return_address=REG[EFFF9])
+
+485 12F7FFE06000488000000   popa        REG[F7FFE] = _poa1 + 0
+486 12EFFF806000000000000               REG[EFFF8] = 0 + 0
+487 200045D0200000000045D               goto pop if 0 == 0 else pop
+488 12EFFF8072EFFF8000001   _poa1       REG[EFFF    8] = REG[EFFF8] - 1
+489 16EFFF8062EFFFA000000               REG[REG[EFFF8]] = REG[EFFFA] + 0
+48A 200045D042EFFF82EFFF9               goto pop if REG[EFFF8] > 0 else REG[EFFF9]
+
+# It seems like it is time to write out first function(s). In particular, we
+# need a "print" function that takes the address of an array with length and
+# writes it to a port of our choosing. Since functions will be using the CALL,
+# RETURN, PUSH, and POP subroutines, there is now enough functionality to start
+# writing them. Instead of embedding error messages into the code as was done
+# in the four subroutines mentioned, the error messages can be stored as data
+# instead and reused more easily if needed.
+
+# FUNCTION: print(string_pointer, port_number) -> 1 on success, 0 on error
+
+48B 12F7FFE0600048D000000   print       REG[F7FFE] = _p1 + 0
+48C 200045D0200000000045D               goto pop if 0 == 0 else pop
+48D 1200001062EFFFA000000   _p1         REG[1] = REG[EFFFA] + 0
+48E 12F7FFE06000490000000               REG[F7FFE] = _p2 + 0
+48F 200045D0200000000045D               goto pop if 0 == 0 else pop
+490 1200000062EFFFA000000   _p2         REG[0] = REG[EFFFA] + 0
+491 120000206400000000000               REG[2] = MEM[REG[0]] + 0
+492 200049300200002000497               goto _p3 if REG[2] < 0 else _p5
+493 12EFFFA06000000000000   _p3         REG[EFFFA] = 0 + 0
+494 12F7FFE06000496000000               REG[F7FFE] = _p4 + 0
+495 200043C0200000000043C               goto push if 0 == 0 else push
+496 200041F0200000000041F   _p4         goto return if 0 == 0 else return
+497 20004980020000200049C   _p5         goto _p6 if REG[2] == 0 else _p8
+498 12EFFFA06000001000000   _p6         REG[EFFFA] = 1 + 0
+499 12F7FFE0600049B000000               REG[F7FFE] = _p7 + 0
+49A 200043C0200000000043C               goto push if 0 == 0 else push
+49B 200041F0200000000041F   _p7         goto return if 0 == 0 else return
+49C 120000206200002200000   _p8         REG[2] = REG[2] + REG[0]
+49D 120000006200000000001   _p9         REG[0] = REG[0] + 1
+49E 190000106400000000000               PORT[REG[1]] = MEM[REG[0]] + 0
+49F 120000307200000200002               REG[3] = REG[0] - REG[2]
+4A0 20004A10220000300049D               goto _p10 if REG[3] == 0 else _p9
+4A1 12EFFFA06000001000000   _p10        REG[EFFFA] = 1 + 0
+4A2 12F7FFE060004A4000000               REG[F7FFE] = _p11 + 0
+4A3 200043C0200000000043C               goto push if 0 == 0 else push
+4A4 200041F0200000000041F   _p11        goto return if 0 == 0 else return
+
+# Now that the 8086 stack instructions have been implemented, we can focus on
+# the remaining Whitespace instructions and/or Python instructions. We still
+# need DUPLICATE, COPY(offset), SWAP, and SLIDE(count). Let us see how these
+# compare to Python's bytecode instructions.
+#   NOP             do nothing code
+#   POP_TOP         same as pop instruction already implemented
+#   ROT_TWO         swap top two items on the stack
+#   ROT_THREE       lifts second and third stack item with top down to three
+#   DUP_TOP         duplicate top value (single) on the stack
+#   DUP_TOP_TWO     duplicate top two values on the stack
+
+# From the previous list, we might conclude that the following subroutines are
+# needed to allow further capabilities with the general stack:
+#   COPY(offset)    offset is from top of (general) stack
+#   DUP_TOP_1       shortcut for COPY(0) * 1
+#   DUP_TOP_2       shortcut for COPY(1) * 2
+#   DUP_TOP_3       shortcut for COPY(2) * 3
+#   POPI(offset)    pop value at offset from top of stack
+#   SLIDE(count)    shortcut for POP(1) * count
+#   PUSHI(offset)   push value to place of offset from top of stack
+#   ROT_2           swap top two items on the stack
+#   ROT_3_UP        shortcut for POP; PUSHI(2)
+#   ROT_3_DOWN      shortcut for POPI(2); PUSH
+#   ROT_4_UP        shortcut for POP; PUSHI(3)
+#   ROT_4_DOWN      shortcut for POPI(3); PUSH
+
+# INSTRUCTION: copy(offset=REG[F7FFD], return_address=REG[F7FFE])
+
+4A5 12F7FFC072F7FFB2F7FFD   copy        REG[F7FFC] =  REG[F7FFB] - REG[F7FFD]
+4A6 20004A7052F7FFC0004AA               goto _co1 if REG[F7FFC] >= 0 else _co2
+4A7 12F7FFC062F7FFC0EFFFB   _co1        REG[F7FFC] = REG[F7FFC] + EFFFB
+4A8 12EFFFA066F7FFC000000               REG[EFFFA] = REG[REG[F7FFC]] + 0
+4A9 200043C0200000000043C               goto push if 0 == 0 else push
+4AA 12EFFFA060004B6000000   _co2        REG[EFFFA] = 4B6 + 0
+4AB 12F7FFE060004AD000000               REG[F7FFE] = _co3 + 0
+4AC 200043C0200000000043C               goto push if 0 == 0 else push
+4AD 12EFFFA06000002000000   _co3        REG[EFFFA] = 2 + 0
+4AE 12F7FFE060004B0000000               REG[F7FFE] = _co4 + 0
+4AF 200043C0200000000043C               goto push if 0 == 0 else push
+4B0 12F7FFD0600048B000000   _co4        REG[F7FFD] = print + 0
+4B1 12F7FFE060004B3000000               REG[F7FFE] = _co5 + 0
+4B2 200040102000000000401               goto call if 0 == 0 else call
+4B3 12F7FFE060004B5000000   _co5        REG[F7FFE] = _co6 + 0
+4B4 200045D0200000000045D               goto pop if 0 == 0 else pop
+4B5 000000000000000000000   _co6        halt
+4B6 '\ncopy offset too large\n'
+
+# INSTRUCTION: dup_top_1(return_address=REG[F7FFE])
+
+4CE 12F7FFD06000000000000   dup_top_1   REG[F7FFD] = 0 + 0
+4CF 20004A5020000000004A5               goto copy if 0 == 0 else copy
+
+# INSTRUCTION: dup_top_2(return_address=REG[EFFF9])
+
+4D0 12F7FFD06000001000000   dup_top_2   REG[F7FFD] = 1 + 0
+4D1 12F7FFE060004D3000000               REG[F7FFE] = _dt2 + 0
+4D2 20004A5020000000004A5               goto copy if 0 == 0 else copy
+4D3 12F7FFE062EFFF9000000   _dt2        REG[F7FFE] = REG[EFFF9] + 0
+4D4 20004A5020000000004A5               goto copy if 0 == 0 else copy
+
+# INSTRUCTION: dup_top_3(return_address=REG[EFFF9])
+
+4D5 12F7FFD06000002000000   dup_top_3   REG[F7FFD] = 2 + 0
+4D6 12F7FFE060004D8000000               REG[F7FFE] = _dt3_1 + 0
+4D7 20004A5020000000004A5               goto copy if 0 == 0 else copy
+4D8 12F7FFE060004DA000000   _dt3_1      REG[F7FFE] = _dt3_2 + 0
+4D9 20004A5020000000004A5               goto copy if 0 == 0 else copy
+4DA 12F7FFE062EFFF9000000   _dt3_2      REG[F7FFE] = REG[EFFF9] + 0
+4DB 20004A5020000000004A5               goto copy if 0 == 0 else copy
