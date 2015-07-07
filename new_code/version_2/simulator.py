@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 __author__ = 'Stephen "Zero" Chappell <Noctis.Skytower@gmail.com>'
 
+import ast
 import math
 import struct
 import sys
@@ -12,7 +13,7 @@ INTEGER = struct.Struct('>Q')
 def main():
     ports = StandardInput(), StandardOutput(), StandardError()
     mm = MagicalMachine(ports)
-    mm.run('program1.m2l')
+    mm.run('program2.m2l')
 
 
 def float_to_int(obj):
@@ -27,6 +28,24 @@ def int_to_float(obj):
 
 class MagicalMachine:
 
+    A_TEMPLATE = ('{:X}',
+                  'MEM[{:X}]',
+                  'REG[{:X}]',
+                  'MEM[MEM[{:X}]]',
+                  'MEM[REG[{:X}]]',
+                  'REG[MEM[{:X}]]',
+                  'REG[REG[{:X}]]',
+                  'PORT[{:X}]',
+                  'PORT[MEM[{:X}]]',
+                  'PORT[REG[{:X}]]',
+                  'PORT[MEM[MEM[{:X}]]]',
+                  'PORT[MEM[REG[{:X}]]]',
+                  'PORT[REG[MEM[{:X}]]]',
+                  'PORT[REG[REG[{:X}]]]')
+
+    C_FUNCTION = ('<', '<=', '==', '!=', '>', '>=', '+', '-', '*', '/', '//',
+                  '%', '**', '<<', '>>', '&', '^', '|')
+
     def __init__(self, ports):
         self.__ports = ports
         self.__mem = MemoryCells(20, 84)
@@ -37,7 +56,6 @@ class MagicalMachine:
         code = self.__mem[self.__next]
         if isinstance(code, float):
             code = float_to_int(code)
-        self.__next += 1
         code, b3 = divmod(abs(code), 1 << 20)
         code, a3 = divmod(code, 1 << 4)
         code, b2 = divmod(code, 1 << 20)
@@ -48,8 +66,10 @@ class MagicalMachine:
         code, op = divmod(code, 1 << 4)
         if code:
             raise ValueError('instruction is too large')
+        # self.__explain(op, a1, b1, cc, a2, b2, a3, b3)
         if op == 0:
             return False
+        self.__next += 1
         if op == 1:
             self.__set(a1, b1, self.__exe(cc, self.__get(
                 a2, b2), self.__get(a3, b3)))
@@ -59,6 +79,26 @@ class MagicalMachine:
                 a2, b2), 0) else self.__get(a3, b3)
             return True
         raise ValueError('instruction could not be understood')
+
+    def __explain(self, op, a1, b1, cc, a2, b2, a3, b3):
+        if op == 0:
+            print('{:05X}   halt'.format(self.__next))
+        elif op == 1:
+            print('{:05X}   {} = {} {} {}'.format(
+                self.__next,
+                self.A_TEMPLATE[a1].format(b1),
+                self.A_TEMPLATE[a2].format(b2),
+                self.C_FUNCTION[cc],
+                self.A_TEMPLATE[a3].format(b3)
+            ))
+        elif op == 2:
+            print('{:05X}   goto {} if {} {} 0 else {}'.format(
+                self.__next,
+                self.A_TEMPLATE[a1].format(b1),
+                self.A_TEMPLATE[a2].format(b2),
+                self.C_FUNCTION[cc],
+                self.A_TEMPLATE[a3].format(b3)
+            ))
 
     def __get(self, a, b):
         if a == 0:
@@ -76,23 +116,19 @@ class MagicalMachine:
         elif a == 6:
             return self.__reg[self.__reg[b]]
         elif a == 7:
-            return self.__mem[self.__mem[self.__mem[b]]]
-        elif a == 8:
-            return self.__mem[self.__mem[self.__reg[b]]]
-        elif a == 9:
-            return self.__mem[self.__reg[self.__mem[b]]]
-        elif a == 10:
-            return self.__mem[self.__reg[self.__reg[b]]]
-        elif a == 11:
-            return self.__reg[self.__mem[self.__mem[b]]]
-        elif a == 12:
-            return self.__reg[self.__mem[self.__reg[b]]]
-        elif a == 13:
-            return self.__reg[self.__reg[self.__mem[b]]]
-        elif a == 14:
-            return self.__reg[self.__reg[self.__reg[b]]]
-        elif a == 15:
             return self.__ports[b].in_()
+        elif a == 8:
+            return self.__ports[self.__mem[b]].in_()
+        elif a == 9:
+            return self.__ports[self.__reg[b]].in_()
+        elif a == 10:
+            return self.__ports[self.__mem[self.__mem[b]]].in_()
+        elif a == 11:
+            return self.__ports[self.__mem[self.__reg[b]]].in_()
+        elif a == 12:
+            return self.__ports[self.__reg[self.__mem[b]]].in_()
+        elif a == 13:
+            return self.__ports[self.__reg[self.__reg[b]]].in_()
         else:
             raise ValueError('could not understand operand type')
 
@@ -153,23 +189,19 @@ class MagicalMachine:
         elif a == 6:
             self.__reg[self.__reg[b]] = c
         elif a == 7:
-            self.__mem[self.__mem[self.__mem[b]]] = c
-        elif a == 8:
-            self.__mem[self.__mem[self.__reg[b]]] = c
-        elif a == 9:
-            self.__mem[self.__reg[self.__mem[b]]] = c
-        elif a == 10:
-            self.__mem[self.__reg[self.__reg[b]]] = c
-        elif a == 11:
-            self.__reg[self.__mem[self.__mem[b]]] = c
-        elif a == 12:
-            self.__reg[self.__mem[self.__reg[b]]] = c
-        elif a == 13:
-            self.__reg[self.__reg[self.__mem[b]]] = c
-        elif a == 14:
-            self.__reg[self.__reg[self.__reg[b]]] = c
-        elif a == 15:
             self.__ports[b].out(c)
+        elif a == 8:
+            self.__ports[self.__mem[b]].out(c)
+        elif a == 9:
+            self.__ports[self.__reg[b]].out(c)
+        elif a == 10:
+            self.__ports[self.__mem[self.__mem[b]]].out(c)
+        elif a == 11:
+            self.__ports[self.__mem[self.__reg[b]]].out(c)
+        elif a == 12:
+            self.__ports[self.__reg[self.__mem[b]]].out(c)
+        elif a == 13:
+            self.__ports[self.__reg[self.__reg[b]]].out(c)
         else:
             raise ValueError('could not understand operand type')
 
@@ -177,14 +209,30 @@ class MagicalMachine:
         with open(name) as file:
             for line in file:
                 if line[0] != '#':
-                    fields = line.split()
+                    fields = line.split(' ')
                     try:
                         address = int(fields[0], 16)
-                        instruction = int(fields[1], 16)
                     except (IndexError, ValueError):
                         pass
                     else:
-                        self.__mem[address] = instruction
+                        try:
+                            instruction = int(fields[1], 16)
+                        except ValueError:
+                            tail_end = ' '.join(fields[1:])
+                            try:
+                                literal = ast.literal_eval(tail_end)
+                            except SyntaxError:
+                                pass
+                            else:
+                                if isinstance(literal, str):
+                                    self.__mem[address] = len(literal)
+                                    iterator = enumerate(literal, address + 1)
+                                    for position, character in iterator:
+                                        self.__mem[position] = ord(character)
+                        except IndexError:
+                            pass
+                        else:
+                            self.__mem[address] = instruction
 
     def run(self, name):
         self.load(name)
@@ -303,7 +351,7 @@ class StandardError(StringPort):
         pass
 
     def _exe_out(self, value):
-        sys.stdout.write(value)
+        sys.stderr.write(value)
 
 if __name__ == '__main__':
     main()

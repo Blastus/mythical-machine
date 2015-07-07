@@ -11,15 +11,13 @@
 4                       MEM[REG[r]]
 5                       REG[MEM[m]]
 6                       REG[REG[r]]
-7                       MEM[MEM[MEM[m]]]
-8                       MEM[MEM[REG[r]]]
-9                       MEM[REG[MEM[r]]]
-A                       MEM[REG[REG[r]]]
-B                       REG[MEM[MEM[r]]]
-C                       REG[MEM[REG[r]]]
-D                       REG[REG[MEM[r]]]
-E                       REG[REG[REG[r]]]
-F                       PORT[p]
+7                       PORT[p]
+8                       PORT[MEM[m]]
+9                       PORT[REG[r]]
+A                       PORT[MEM[MEM[m]]]
+B                       PORT[MEM[REG[r]]]
+C                       PORT[REG[MEM[m]]]
+D                       PORT[REG[REG[r]]]
 
 --------------------------- Code "B" Meaning ---------------------------
 The pattern BBBBB represents a number composed of 20 bits.
