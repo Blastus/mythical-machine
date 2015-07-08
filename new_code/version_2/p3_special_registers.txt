@@ -6,15 +6,15 @@ F7FFF - FFFFE
 
 F7FFE
     stores the return address when calling subroutines 401 (call), 43C (push),
-    45D (pop), 4A5 (copy), 4CE (dup_top_1)
+    45D (pop), 4A5 (copy), 4CE (dup_top_1), 4DC (popi)
 
 F7FFD
     stores the function address when calling subroutine 401 (call), offset when
-    calling subroutine 4A5 (copy)
+    calling subroutines 4A5 (copy), 4DC (popi)
 
 F7FFC
     used for miscellaneous calculations in subroutines 401 (call), 41F
-    (return), 43C (push), 45D (pop), 47E (pusha), 45A (copy)
+    (return), 43C (push), 45D (pop), 47E (pusha), 45A (copy), 4DC (popi)
 
 F7FFB
     offset of general stack pointer
@@ -30,4 +30,4 @@ EFFF9
     (dup_top_2), 4D5 (dup_top_3)
 
 EFFF8
-    stores counter used in subroutines 47E (pusha), 485 (popa)
+    stores counter used in subroutines 47E (pusha), 485 (popa), 4DC (popi)
