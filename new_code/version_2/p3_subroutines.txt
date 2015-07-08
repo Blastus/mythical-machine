@@ -1,36 +1,93 @@
 call (401)
     > target_address = REG[F7FFD]
     > return_address = REG[F7FFE]
+    - call_stack_offset = REG[FFFFF]
+    - temp = REG[F7FFC]
     < None
 
 return (41F)
     > None
+    - call_stack_offset = REG[FFFFF]
+    - temp = REG[F7FFC]
     < None
 
 push (43C)
     > value = REG[EFFFA]
     > return_address = REG[F7FFE]
+    - general_stack_offset = REG[F7FFB]
+    - temp = REG[F7FFC]
     < None
 
 pop (45D)
     > return_address = REG[F7FFE]
+    - general_stack_offset = REG[F7FFB]
+    - temp = REG[F7FFC]
     < value = REG[EFFFA]
 
 pusha (47E)
     > return_address = REG[EFFF9]
+    - push_return = REG[F7FFE]
+    - counter = REG[EFFF8]
+    - value = REG[EFFFA]
+    - temp = REG[F7FFC]
+    + push (43C)
     < None
 
 popa (485)
     > return_address = REG[EFFF9]
+    - pop_return = REG[F7FFE]
+    - counter = REG[EFFF8]
+    - value = REG[EFFFA]
+    + pop (45D)
     < None
 
 copy (4A5)
     > offset = REG[F7FFD]
     > return_address = REG[F7FFE]
+    - general_stack_offset = REG[F7FFB]
+    - temp = REG[F7FFC]
+    - value = REG[EFFFA]
+    + push (43C)
+    + call (401)
+    + pop (45D)
     < None
 
 dup_top_1 (4CE)
     > return_address = REG[F7FFE]
+    - offset = REG[F7FFD]
+    + copy (45A)
+    < None
+
+dup_top_2 (4D0)
+    > return_address = REG[EFFF9]
+    - offset = REG[F7FFD]
+    - copy_return = REG[F7FFE]
+    + copy (45A)
+    < None
+
+dup_top_3 (4D5)
+    > return_address = REG[EFFF9]
+    - offset = REG[F7FFD]
+    - copy_return = REG[F7FFE]
+    + copy (45A)
+    < None
+
+popi (4DC)
+    > offset = REG[F7FFD]
+    > return_address = REG[F7FFE]
+    - general_stack_offset = REG[F7FFB]
+    - temp = REG[F7FFC]
+    - counter = REG[EFFF8]
+    + push (43C)
+    + call (401)
+    + pop (45D)
+    < value = REG[EFFFA]
+
+slide (50C)
+    > count = REG[F7FFD]
+    > return_address = REG[F7FFE]
+    - TODO
+    + TODO
     < None
 
 FUNCTIONS
