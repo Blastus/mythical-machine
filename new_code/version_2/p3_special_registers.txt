@@ -6,11 +6,11 @@ F7FFF - FFFFE
 
 F7FFE
     stores the return address when calling subroutines 401 (call), 43C (push),
-    45D (pop), 4A5 (copy), 4CE (dup_top_1), 4DC (popi)
+    45D (pop), 4A5 (copy), 4CE (dup_top_1), 4DC (popi), 50C slide)
 
 F7FFD
-    stores the function address when calling subroutine 401 (call), offset when
-    calling subroutines 4A5 (copy), 4DC (popi)
+    stores the function address when calling subroutine 401 (call); offset when
+    calling subroutines 4A5 (copy), 4DC (popi); count when calling 50C (slide)
 
 F7FFC
     used for miscellaneous calculations in subroutines 401 (call), 41F
@@ -31,3 +31,5 @@ EFFF9
 
 EFFF8
     stores counter used in subroutines 47E (pusha), 485 (popa), 4DC (popi)
+
+See p3_subroutines.txt for better documentation.
