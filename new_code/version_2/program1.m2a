@@ -1,0 +1,240 @@
+call_stack_pointer = F8000
+general_stack_pointer = F0000
+call_stack_offset = REG[F7FFF]
+general_stack_offset = REG[F7FFE]
+stdin = 0
+stdout = 1
+stderr = 2
+max_stack_size = call_stack_pointer - general_stack_pointer
+general_register_space = 20
+
+call:
+    > target_address = REG[F7FFD]
+    > return_address = REG[F7FFC]
+    - temp = REG[F7FFB]
+    temp = call_stack_offset < max_stack_size
+    goto .c1 if temp != 0 else .c2
+.c1:
+    temp = call_stack_pointer + call_stack_offset
+    REG[temp] = return_address | 0
+    call_stack_offset = call_stack_offset + 1
+    goto target_address if 0 == 0 else target_address
+.c2:
+    PORT[stderr] = '\n' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'k' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 'f' | 0
+    PORT[stderr] = 'u' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = '\n' | 0
+    halt
+
+return:
+    - temp = REG[F7FFD]
+    goto .r1 if call_stack_offset > 0 else .r2
+.r1:
+    call_stack_offset = call_stack_offset - 1
+    temp = call_stack_pointer + call_stack_offset
+    goto REG[temp] if 0 == 0 else REG[temp]
+.r2:
+    PORT[stderr] = '\n' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'k' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'm' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'y' | 0
+    PORT[stderr] = '\n' | 0
+    halt
+
+push:
+    > value = REG[F7FFD]
+    > return_address = REG[F7FFC]
+    - temp = REG[F7FFB]
+    temp = general_stack_offset < max_stack_size
+    goto .p1 if temp != 0 else .p2
+.p1:
+    temp = general_stack_pointer + general_stack_offset
+    REG[temp] = value | 0
+    general_stack_offset = general_stack_offset + 1
+    goto return_address if 0 == 0 else return_address
+.p2:
+    PORT[stderr] = '\n' | 0
+    PORT[stderr] = 'g' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'n' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'r' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'k' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 'f' | 0
+    PORT[stderr] = 'u' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = '\n' | 0
+    halt
+
+pop:
+    > return_address = REG[F7FFD]
+    - temp = REG[F7FFC]
+    < value = REG[F7FFB]
+    goto .p1 if general_stack_offset > 0 else .p2
+.p1:
+    general_stack_offset = general_stack_offset - 1
+    temp = general_stack_pointer + general_stack_offset
+    value = REG[temp] | 0
+    goto return_address if 0 == 0 else return_address
+.p2:
+    PORT[stderr] = '\n' | 0
+    PORT[stderr] = 'g' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'n' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'r' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'l' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'k' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 's' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 'a' | 0
+    PORT[stderr] = 'c' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = ' ' | 0
+    PORT[stderr] = 'e' | 0
+    PORT[stderr] = 'm' | 0
+    PORT[stderr] = 'p' | 0
+    PORT[stderr] = 't' | 0
+    PORT[stderr] = 'y' | 0
+    PORT[stderr] = '\n' | 0
+    halt
+
+print: # string_pointer, port_number > success
+    - port_number = REG[0]
+    - string_pointer = REG[1]
+    - string_length = REG[2]
+    - end_pointer = REG[3]
+    - temp = REG[4]
+    pop.return_address = .p1 | 0
+    goto pop if 0 == 0 else pop
+.p1:
+    port_number = pop.value | 0
+    pop.return_address = .p2 | 0
+    goto pop if 0 == 0 else pop
+.p2:
+    string_pointer = pop.value | 0
+    string_length = MEM[string_pointer] | 0
+    goto .p3 if string_length < 0 else .p4
+.p3:
+    push.value = 0 | 0
+    push.return_address = return | 0
+    goto push if 0 == 0 else push
+.p4:
+    goto .p5 if string_length == 0 else .p6
+.p5:
+    push.value = 1 | 0
+    push.return_address = return | 0
+    goto push if 0 == 0 else push
+.p6:
+    end_pointer = string_pointer + string_length
+.p7:
+    string_pointer = string_pointer + 1
+    PORT[port_number] = MEM[string_pointer] + 0
+    temp = string_pointer < end_pointer
+    goto .p7 if temp != 0 else .p5
+
+pusha:
+    > return_address = REG[F7FFD]
+    - temp = REG[F7FFC]
+    - offset = REG[F7FFB]
+    - pointer = REG[F7FFA]
+    temp = general_stack_offset < max_stack_size - general_register_space
+    goto .p1 if temp != 0 else .p3
+.p1:
+    offset = 0 | 0
+    pointer = general_stack_pointer + general_stack_offset
+    general_stack_pointer = general_stack_pointer + general_register_space
+.p2:
+    REG[pointer] = REG[offset] | 0
+    offset = offset + 1
+    pointer = pointer + 1
+    temp = offset < general_register_space
+    goto .p2 if temp != 0 else return_address
+.p3:
+    push.value = .error | 0
+    push.return_address = .p4 | 0
+    goto push if 0 == 0 else push
+.p4:
+    push.value = 2 | 0
+    push.return_address = .p5 | 0
+    goto push if 0 == 0 else push
+.p5:
+    call.target_address = print | 0
+    call.return_address = .p6 | 0
+    goto call if 0 == 0 else call
+.p6:
+    pop.return_address = .p7 | 0
+    goto pop if 0 == 0 else pop
+.p7:
+    halt
+.error:
+    '\ngeneral stack space too full\n'
+
+popa:
+    > return_address = REG[F7FFD]
+    - temp = REG[F7FFC]
+    temp = general_stack_offset >= general_register_space
+    goto .p1 if temp != 0 else .p2
+.p1:
+    offset = 1F | 0
+    pointer = TODO

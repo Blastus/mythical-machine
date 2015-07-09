@@ -86,8 +86,24 @@ popi (4DC)
 slide (50C)
     > count = REG[F7FFD]
     > return_address = REG[F7FFE]
-    - TODO
-    + TODO
+    - general_stack_offset = REG[F7FFB]
+    - top = REG[EFFFA]
+    - temp = REG[F7FFC]
+    + push (43C)
+    + call (401)
+    + pop (45D)
+    < None
+
+pushi (538)
+    > offset = REG[F7FFD]
+    > value = REG[EFFFA]
+    > return_address = REG[F7FFE]
+    - general_stack_offset = REG[F7FFB]
+    - set = REG[F7FFC]
+    - get = REG[EFFF8]
+    + push (43C)
+    + call (401)
+    + pop (45D)
     < None
 
 FUNCTIONS

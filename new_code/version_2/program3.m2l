@@ -450,6 +450,102 @@
 51F 000000000000000000000   _s6         halt
 520 '\nslide count too large\n'
 
-# INSTRUCTION: pushi(value, offset, return_address)
+# While popi filled REG[EFFFA] and then copied items on the stack to lower
+# positions, pushi will do just the opposite. After checking that the offset is
+# permitted (offset <= general_stack_offset), stack items will be copied upward
+# starting from the new top, and then the value will be copied into the newly
+# available space. Let us go over some example operations.
 
-538
+# If general_stack_offset (GSO) is 0, there is nothing on the stack, but offset
+# (F) is allowed to be 0 since this simply puts the value on the top. If GSO is
+# 1, one item is on the stack. The F may be 0 (for top of stack) or 1 (one
+# offset from the top of the stack). If GSO is 2, F may be 0, 1, or 2. In each
+# case, GSO will be incremented by 1, and F stack items will be moved.
+
+#   pushi       set = offset <= general_stack_offset
+#               goto _pui1 if set != 0 else _pui4
+#   _pui1       set = general_stack_offset + EFFFB
+#               get = set - 1
+#               goto _pui2 if offset > 0 else _pui3
+#   _pui2       REG[set] = REG[get] + 0
+#               set = set - 1
+#               get = get - 1
+#               offset = offset - 1
+#               goto _pui2 if offset > 0 else _pui3
+#   _pui3       REG[set] = value + 0
+#               general_stack_offset = general_stack_offset + 1
+#               goto return_address if 0 == 0 else return_address
+#   _pui4       value = pushi_error + 0
+#               return_address = _pui5 + 0
+#               goto push if 0 == 0 else push
+#   _pui5       value = 2 + 0
+#               return_address = _pui6 + 0
+#               goto push if 0 == 0 else push
+#   _pui6       offset = print + 0
+#               return_address = _pui7 + 0
+#               goto call if 0 == 0 else call
+#   _pui7       return_address = _pui8 + 0
+#               goto pop if 0 == 0 else pop
+#   _pui8       halt
+#   pushi_error '\npushi offset too large\n'
+
+# INSTRUCTION: pushi(offset=REG[F7FFD], value=REG[EFFFA], return_address=REG[F7FFE])
+
+# general_stack_offset = REG[F7FFB]
+# set = REG[F7FFC]
+# get = REG[EFFF8]
+
+538 12F7FFC022F7FFD2F7FFB   pushi       set = offset <= general_stack_offset
+539 200053A032F7FFC000545               goto _pui1 if set != 0 else _pui4
+53A 12F7FFC062F7FFB0EFFFB   _pui1       set = general_stack_offset + EFFFB
+53B 12EFFF8072F7FFC000001               get = set - 1
+53C 200053D042F7FFD000542               goto _pui2 if offset > 0 else _pui3
+53D 16F7FFC066EFFF8000000   _pui2       REG[set] = REG[get] + 0
+53E 12F7FFC072F7FFC000001               set = set - 1
+53F 12EFFF8072EFFF8000001               get = get - 1
+540 12EFFF8072EFFF8000001               offset = offset - 1
+541 200053D042F7FFD000542               goto _pui2 if offset > 0 else _pui3
+542 16F7FFC062EFFFA000000   _pui3       REG[set] = value + 0
+543 12F7FFB062F7FFB000001               general_stack_offset = general_stack_offset + 1
+544 22F7FFE020000002F7FFE               goto return_address if 0 == 0 else return_address
+545 12EFFFA06000548000000   _pui4       value = pushi_error + 0
+
+# It came to my realization here that the return address could just be given
+# for some other code that handles printing an error message. Therefore, it
+# seems sensible to provide a return address for 517 which might be described
+# in the future as slide.s3 (main label slide, sub label s3). The rest of the
+# required code (push 2, call print, pop, halt) are the same from there onward.
+
+546 12F7FFE06000517000000               return_address = _s3 + 0
+547 200043C0200000000043C               goto push if 0 == 0 else push
+548 '\npushi offset too large\n'
+
+# It has also come to my attention that in a future version of the code
+# (assembly level) some bugs will need to be corrected. Note that since the
+# push instruction is not used, the pushi instruction may overflow the general
+# stack. If this proceeds too far, the overflow could run into the call stack
+# and then even into registers 0 and higher (wrapping around). Since this code
+# is so difficult to patch, it will be left as it is as a future lesson.
+
+#   rot_2       test = general_stack_offset >= 2
+#               goto _rt2_1 if test != 0 else _rt2_2
+#   _rt2_1      test = general_stack_offset + EFFFB
+#               test = test - 1
+#               value = REG[test]
+#               second = test - 1
+#               REG[test] = REG[second]
+#               REG[second] = value
+#               goto return_address if 0 == 0 else return_address
+#   _rt2_2      value = rot2_error + 0
+#               return_address = _s3 + 0
+#               goto push if 0 == 0 else push
+#   rot2_error  '\ncannot rot2 general stack\n'
+
+# INSTRUCTION: rot_2(return_address=REG[F7FFE])
+
+# general_stack_offset = REG[F7FFB]
+# test = REG[F7FFC]
+# value = REG[EFFFA]
+# second = REG[F7FFD]
+
+549
