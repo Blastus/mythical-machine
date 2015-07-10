@@ -1,0 +1,20 @@
+----------------------------- Machine Code Format -----------------------------
+AAAAA B C???...???
+
+AAAAA = location of instruction in memory
+B     = permissions of that memory location
+
+------------------------------- Instruction Set -------------------------------
+halt
+A = B
+A = B(C, 0, 0)
+A = B(C, D, 0)
+A = B(C, D, E)
+A, B = C(D, E)
+
+--------------------------- Memory Permissions Flag ---------------------------
+A = B C D E
+B = permissions are editable
+C = memory location is executable
+D = memory location is readable
+E = memory location is writeable

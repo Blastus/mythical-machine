@@ -189,7 +189,7 @@ print: # string_pointer, port_number > success
     end_pointer = string_pointer + string_length
 .p7:
     string_pointer = string_pointer + 1
-    PORT[port_number] = MEM[string_pointer] + 0
+    PORT[port_number] = MEM[string_pointer] | 0
     temp = string_pointer < end_pointer
     goto .p7 if temp != 0 else .p5
 
