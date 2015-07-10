@@ -43,8 +43,28 @@ class MagicalMachine:
                   'PORT[REG[MEM[{:X}]]]',
                   'PORT[REG[REG[{:X}]]]')
 
-    C_FUNCTION = ('<', '<=', '==', '!=', '>', '>=', '+', '-', '*', '/', '//',
-                  '%', '**', '<<', '>>', '&', '^', '|')
+    C_FUNCTION = ('{} < {}',
+                  '{} <= {}',
+                  '{} == {}',
+                  '{} != {}',
+                  '{} > {}',
+                  '{} >= {}',
+                  '{} + {}',
+                  '{} - {}',
+                  '{} * {}',
+                  '{} / {}',
+                  '{} // {}',
+                  '{} % {}',
+                  '{} ** {}',
+                  '{} << {}',
+                  '{} >> {}',
+                  '{} & {}',
+                  '{} ^ {}',
+                  '{} | {}',
+                  '{} OR {}',
+                  '{} AND {}',
+                  'MEM[{} + {}]',
+                  'REG[{} + {}]')
 
     def __init__(self, ports):
         self.__ports = ports
@@ -66,7 +86,7 @@ class MagicalMachine:
         code, op = divmod(code, 1 << 4)
         if code:
             raise ValueError('instruction is too large')
-        # self.__explain(op, a1, b1, cc, a2, b2, a3, b3)
+        self.__explain(op, a1, b1, cc, a2, b2, a3, b3)
         if op == 0:
             return False
         self.__next += 1
@@ -84,123 +104,128 @@ class MagicalMachine:
         if op == 0:
             print('{:05X}   halt'.format(self.__next))
         elif op == 1:
-            print('{:05X}   {} = {} {} {}'.format(
+            print('{:05X}   {} = {}'.format(
                 self.__next,
                 self.A_TEMPLATE[a1].format(b1),
-                self.A_TEMPLATE[a2].format(b2),
-                self.C_FUNCTION[cc],
-                self.A_TEMPLATE[a3].format(b3)
-            ))
+                self.C_FUNCTION[cc].format(
+                    self.A_TEMPLATE[a2].format(b2),
+                    self.A_TEMPLATE[a3].format(b3))))
         elif op == 2:
-            print('{:05X}   goto {} if {} {} 0 else {}'.format(
+            print('{:05X}   goto {} if {} else {}'.format(
                 self.__next,
                 self.A_TEMPLATE[a1].format(b1),
-                self.A_TEMPLATE[a2].format(b2),
-                self.C_FUNCTION[cc],
-                self.A_TEMPLATE[a3].format(b3)
-            ))
+                self.C_FUNCTION[cc].format(
+                    self.A_TEMPLATE[a2].format(b2), 0),
+                self.A_TEMPLATE[a3].format(b3)))
 
     def __get(self, a, b):
-        if a == 0:
+        if a == 0x0:
             return b
-        elif a == 1:
+        elif a == 0x1:
             return self.__mem[b]
-        elif a == 2:
+        elif a == 0x2:
             return self.__reg[b]
-        elif a == 3:
+        elif a == 0x3:
             return self.__mem[self.__mem[b]]
-        elif a == 4:
+        elif a == 0x4:
             return self.__mem[self.__reg[b]]
-        elif a == 5:
+        elif a == 0x5:
             return self.__reg[self.__mem[b]]
-        elif a == 6:
+        elif a == 0x6:
             return self.__reg[self.__reg[b]]
-        elif a == 7:
+        elif a == 0x7:
             return self.__ports[b].in_()
-        elif a == 8:
+        elif a == 0x8:
             return self.__ports[self.__mem[b]].in_()
-        elif a == 9:
+        elif a == 0x9:
             return self.__ports[self.__reg[b]].in_()
-        elif a == 10:
+        elif a == 0xA:
             return self.__ports[self.__mem[self.__mem[b]]].in_()
-        elif a == 11:
+        elif a == 0xB:
             return self.__ports[self.__mem[self.__reg[b]]].in_()
-        elif a == 12:
+        elif a == 0xC:
             return self.__ports[self.__reg[self.__mem[b]]].in_()
-        elif a == 13:
+        elif a == 0xD:
             return self.__ports[self.__reg[self.__reg[b]]].in_()
         else:
             raise ValueError('could not understand operand type')
 
-    @staticmethod
-    def __exe(c, x, y):
-        if c == 0:
+    def __exe(self, c, x, y):
+        if c == 0x00:
             return x < y
-        elif c == 1:
+        elif c == 0x01:
             return x <= y
-        elif c == 2:
+        elif c == 0x02:
             return x == y
-        elif c == 3:
+        elif c == 0x03:
             return x != y
-        elif c == 4:
+        elif c == 0x04:
             return x > y
-        elif c == 5:
+        elif c == 0x05:
             return x >= y
-        elif c == 6:
+        elif c == 0x06:
             return x + y
-        elif c == 7:
+        elif c == 0x07:
             return x - y
-        elif c == 8:
+        elif c == 0x08:
             return x * y
-        elif c == 9:
+        elif c == 0x09:
             return x / y
-        elif c == 10:
+        elif c == 0x0A:
             return x // y
-        elif c == 11:
+        elif c == 0x0B:
             return x % y
-        elif c == 12:
+        elif c == 0x0C:
             return x ** y
-        elif c == 13:
+        elif c == 0x0D:
             return x << y
-        elif c == 14:
+        elif c == 0x0E:
             return x >> y
-        elif c == 15:
+        elif c == 0x0F:
             return x & y
-        elif c == 16:
+        elif c == 0x10:
             return x ^ y
-        elif c == 17:
+        elif c == 0x11:
             return x | y
+        elif c == 0x12:
+            return x or y
+        elif c == 0x13:
+            return x and y
+        elif c == 0x14:
+            return self.__mem[x + y]
+        elif c == 0x15:
+            return self.__reg[x + y]
         else:
             raise ValueError('could not understand operation type')
 
     def __set(self, a, b, c):
-        if a == 0:
+        if a == 0x0:
             raise ValueError('immediate value may not be set')
-        elif a == 1:
+        elif a == 0x1:
             self.__mem[b] = c
-        elif a == 2:
+        elif a == 0x2:
             self.__reg[b] = c
-        elif a == 3:
+        elif a == 0x3:
             self.__mem[self.__mem[b]] = c
-        elif a == 4:
+        elif a == 0x4:
             self.__mem[self.__reg[b]] = c
-        elif a == 5:
+        elif a == 0x5:
             self.__reg[self.__mem[b]] = c
-        elif a == 6:
+        elif a == 0x6:
             self.__reg[self.__reg[b]] = c
-        elif a == 7:
+        elif a == 0x7:
             self.__ports[b].out(c)
-        elif a == 8:
+        elif a == 0x8:
             self.__ports[self.__mem[b]].out(c)
-        elif a == 9:
+        elif a == 0x9:
             self.__ports[self.__reg[b]].out(c)
-        elif a == 10:
+        elif a == 0xA:
             self.__ports[self.__mem[self.__mem[b]]].out(c)
-        elif a == 11:
+        elif a == 0xB:
             self.__ports[self.__mem[self.__reg[b]]].out(c)
-        elif a == 12:
+        elif a == 0xC:
             self.__ports[self.__reg[self.__mem[b]]].out(c)
-        elif a == 13:
+        elif a == 0xD:
             self.__ports[self.__reg[self.__reg[b]]].out(c)
         else:
             raise ValueError('could not understand operand type')
